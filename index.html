@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Spelling Adventure! — Listen, Spell, Learn!</title>
+  <style>
+    /* --- CSS RESET & BASE STYLES --- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --sky-blue: #64D1FF;
+      --light-blue: #E8F7FF;
+      --dark-navy: #173D79;
+      --white: #FFFFFF;
+      --warm-white: #FFFEFA;
+      --sunny-yellow: #FFCA4D;
+      --sunny-yellow-dark: #E0AB30;
+      --coral-pink: #FF6B91;
+      --fresh-green: #3BBD91;
+      --purple: #A777F5;
+      --orange: #FF8843;
+      --shadow-color: rgba(23, 61, 121, 0.15);
+      --font-family: 'Comic Sans MS', 'Chalkboard SE', 'Fredoka', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--light-blue);
+      color: var(--dark-navy);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- SCREEN CONTAINER MANAGEMENT --- */
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      padding: 16px;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* --- COMMON BUTTONS & CARDS --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2), 0 8px 15px var(--shadow-color);
+      transition: all 0.1s ease;
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 3px 6px var(--shadow-color);
+    }
+
+    .btn-primary {
+      background-color: var(--sunny-yellow);
+      color: var(--dark-navy);
+    }
+
+    .btn-secondary {
+      background-color: var(--coral-pink);
+      color: var(--white);
+    }
+
+    .btn-action {
+      background-color: var(--fresh-green);
+      color: var(--white);
+    }
+
+    .btn-purple {
+      background-color: var(--purple);
+      color: var(--white);
+    }
+
+    .btn-icon {
+      width: 50px;
+      height: 50px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 1.5rem;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 25px var(--shadow-color);
+    }
+
+    /* --- NAVBAR --- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto 12px auto;
+      z-index: 10;
+    }
+
+    .nav-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--dark-navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* --- WELCOME SCREEN --- */
+    #welcome-screen {
+      background: linear-gradient(135deg, var(--sky-blue) 0%, var(--light-blue) 100%);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-container {
+      max-width: 650px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      padding: 36px 24px;
+      box-shadow: 0 20px 40px rgba(23, 61, 121, 0.2);
+      border: 4px solid var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .game-title {
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: var(--dark-navy);
+      text-shadow: 3px 3px 0px var(--sky-blue);
+      line-height: 1.1;
+    }
+
+    .game-subtitle {
+      font-size: 1.4rem;
+      color: var(--coral-pink);
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .decorations {
+      font-size: 2.5rem;
+      display: flex;
+      gap: 20px;
+      margin: 10px 0;
+    }
+
+    .welcome-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    /* --- NUMBER SELECTION SCREEN --- */
+    #number-screen {
+      align-items: center;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      margin: auto 0;
+    }
+
+    .number-box {
+      aspect-ratio: 1;
+      border-radius: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--dark-navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8);
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      touch-action: manipulation;
+    }
+
+    .number-box:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8);
+    }
+
+    /* Colors for Number Boxes with Gradients & Edges */
+    .box-color-1 { background: linear-gradient(135deg, #FFB3BA 0%, #FF8A95 100%); border-color: #FF6B7A; color: #601018; }
+    .box-color-2 { background: linear-gradient(135deg, #FFDFBA 0%, #FFC58D 100%); border-color: #FFAA5A; color: #5C3200; }
+    .box-color-3 { background: linear-gradient(135deg, #FFFFBA 0%, #FFE875 100%); border-color: #E6C820; color: #524700; }
+    .box-color-4 { background: linear-gradient(135deg, #BAFFC9 0%, #88F5A3 100%); border-color: #4DE070; color: #074D1B; }
+    .box-color-5 { background: linear-gradient(135deg, #BAE1FF 0%, #8AD0FF 100%); border-color: #52B3FF; color: #003766; }
+
+    /* --- SPELLING ACTIVITY SCREEN --- */
+    #spelling-screen {
+      align-items: center;
+      padding-bottom: 12px;
+    }
+
+    .activity-container {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .audio-banner {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 6px 15px var(--shadow-color);
+      text-align: center;
+    }
+
+    .audio-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speaker-btn-large {
+      width: 80px;
+      height: 80px;
+      font-size: 2.8rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sunny-yellow) 0%, var(--sunny-yellow-dark) 100%);
+      color: var(--dark-navy);
+      border: 4px solid var(--white);
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15), 0 8px 15px var(--shadow-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    .speaker-btn-large:hover {
+      transform: scale(1.05);
+    }
+
+    .speaker-btn-large:active {
+      transform: translateY(4px) scale(0.98);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15), 0 3px 6px var(--shadow-color);
+    }
+
+    .speaker-btn-large:focus-visible {
+      outline: 4px solid var(--purple);
+      outline-offset: 3px;
+    }
+
+    .audio-label {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--dark-navy);
+      letter-spacing: 0.5px;
+    }
+
+    .word-reveal-box {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--dark-navy);
+      letter-spacing: 2px;
+      padding: 6px 20px;
+      background: var(--light-blue);
+      border-radius: 12px;
+      border: 2px dashed var(--sky-blue);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    /* HANDWRITING CANVAS */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 250px;
+      background: var(--warm-white);
+      border-radius: 24px;
+      border: 4px solid var(--sky-blue);
+      box-shadow: 0 10px 20px var(--shadow-color);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* TOOLBAR */
+    .tools-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tool-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tool-btn {
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 14px;
+      background: var(--white);
+      color: var(--dark-navy);
+      border: 2px solid var(--sky-blue);
+      box-shadow: 0 4px 0 var(--sky-blue);
+      font-weight: bold;
+    }
+
+    .tool-btn.active {
+      background: var(--sky-blue);
+      color: var(--white);
+      border-color: var(--dark-navy);
+    }
+
+    /* --- WORD LIST SCREEN --- */
+    .word-list-container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .word-category {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 8px 20px var(--shadow-color);
+    }
+
+    .category-title {
+      font-size: 1.5rem;
+      color: var(--dark-navy);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 3px solid var(--light-blue);
+      padding-bottom: 8px;
+    }
+
+    .word-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .word-card {
+      background: var(--light-blue);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* --- MODALS --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(23, 61, 121, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--white);
+      border-radius: 32px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      color: var(--dark-navy);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* CONFETTI CANVAS */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* --- RESPONSIVE ADJUSTMENTS (IPAD & MOBILE) --- */
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .word-list-container {
+        grid-template-columns: 1fr;
+      }
+      .game-title {
+        font-size: 2.5rem;
+      }
+      .tools-bar {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONFETTI CANVAS OVERLAY -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- 1. WELCOME SCREEN -->
+  <div id="welcome-screen" class="screen active">
+    <div class="hero-container">
+      <div class="decorations">✈️ 🌍 🍎 ✏️ ⭐️</div>
+      <h1 class="game-title">Spelling Adventure!</h1>
+      <div class="game-subtitle">Listen • Spell • Learn</div>
+      <p style="font-size: 1.1rem; color: #555;">Practice spelling countries and fruits for Grade 5!</p>
+      <div class="welcome-buttons">
+        <button class="btn btn-primary" onclick="navigateTo('number-screen')">🚀 Start Spelling</button>
+        <button class="btn btn-purple" onclick="navigateTo('wordlist-screen')">📖 Word List</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. NUMBER SELECTION SCREEN -->
+  <div id="number-screen" class="screen">
+    <div class="navbar">
+      <div></div>
+      <div class="nav-buttons">
+        <button class="btn btn-secondary btn-icon" onclick="navigateTo('welcome-screen')" title="Home">🏠</button>
+        <button class="btn btn-purple btn-icon" onclick="navigateTo('wordlist-screen')" title="Word List">📖</button>
+      </div>
+    </div>
+    
+    <!-- ENHANCED HEADER LAYOUT FOR NUMBER SELECTION SCREEN -->
+    <div style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <h1 style="font-size: clamp(2.5rem, 5vw, 3.8rem); font-weight: 900; color: var(--dark-navy); text-shadow: 3px 3px 0px var(--sunny-yellow); line-height: 1.1; margin: 0;">Spelling Game</h1>
+      <h2 style="font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; color: var(--coral-pink); margin: 0;">Choose your box.</h2>
+      <p style="font-size: clamp(1.05rem, 2vw, 1.3rem); font-weight: bold; color: var(--dark-navy); opacity: 0.9; margin: 0;">Tap a number to start your challenge</p>
+    </div>
+
+    <div class="grid-container" id="number-grid">
+      <!-- 15 Number boxes will be populated dynamically -->
+    </div>
+  </div>
+
+  <!-- 3. SPELLING ACTIVITY SCREEN -->
+  <div id="spelling-screen" class="screen">
+    <div class="navbar">
+      <button class="btn btn-secondary" onclick="navigateTo('number-screen')">⬅️ Back</button>
+      <div class="nav-title" id="activity-title">Word #1</div>
+      <button class="btn btn-purple btn-icon" onclick="navigateTo('wordlist-screen')" title="Word List">📖</button>
+    </div>
+
+    <div class="activity-container">
+      <!-- Audio Instruction Banner (Prominent Center Positioned Speaker) -->
+      <div class="audio-banner">
+        <div class="audio-controls">
+          <button class="speaker-btn-large" onclick="playAudioPrompt()" title="Listen to the Word" aria-label="Listen to the Word">🔊</button>
+          <div class="audio-label">Tap to listen to the word!</div>
+        </div>
+        <div class="word-reveal-box" id="word-reveal-display">❓❓❓</div>
+      </div>
+
+      <!-- Handwriting Canvas Area -->
+      <div class="canvas-container" id="canvas-container">
+        <canvas id="handwriting-canvas"></canvas>
+      </div>
+
+      <!-- Handwriting Tools Toolbar -->
+      <div class="tools-bar">
+        <div class="tool-group">
+          <button class="btn tool-btn active" id="tool-marker" onclick="setTool('marker')">✏️ Marker</button>
+          <button class="btn tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧹 Eraser</button>
+          <button class="btn tool-btn" onclick="undoStroke()">↩️ Undo</button>
+          <button class="btn tool-btn" onclick="clearCanvas()">🗑️ Clear</button>
+          <button class="btn tool-btn" onclick="playAudioPrompt()">🔊 Listen Again</button>
+        </div>
+        <div class="tool-group">
+          <button class="btn btn-action" onclick="openCheckModal()">🔍 Check My Spelling</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. WORD LIST SCREEN -->
+  <div id="wordlist-screen" class="screen">
+    <div class="navbar">
+      <button class="btn btn-secondary" onclick="goBackFromWordList()">⬅️ Back</button>
+      <div class="nav-title">📖 Vocabulary List</div>
+      <div></div>
+    </div>
+    <div class="word-list-container">
+      <div class="word-category">
+        <div class="category-title">🌐 Countries (1–6)</div>
+        <div class="word-grid">
+          <div class="word-card">1. Taiwan <span>🇹🇼</span></div>
+          <div class="word-card">2. Philippines <span>🇵🇭</span></div>
+          <div class="word-card">3. Japan <span>🇯🇵</span></div>
+          <div class="word-card">4. USA <span>🇺🇸</span></div>
+          <div class="word-card">5. UK <span>🇬🇧</span></div>
+          <div class="word-card">6. Thailand <span>🇹🇭</span></div>
+        </div>
+      </div>
+      <div class="word-category">
+        <div class="category-title">🧺 Fruits (7–12)</div>
+        <div class="word-grid">
+          <div class="word-card">7. Durians <span>🍈</span></div>
+          <div class="word-card">8. Wax apples <span>🍎</span></div>
+          <div class="word-card">9. Yuzus <span>🍋</span></div>
+          <div class="word-card">10. Cranberries <span>🍒</span></div>
+          <div class="word-card">11. Blackcurrants <span>🫐</span></div>
+          <div class="word-card">12. Mangosteens <span>🥭</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: REVEAL & CHECK -->
+  <div class="modal-overlay" id="check-modal">
+    <div class="modal-card">
+      <h2 class="modal-title">Let's check your spelling!</h2>
+      <p id="modal-instruction-text">Compare your writing with the word displayed at the top of your screen! Check every letter!</p>
+      <div id="modal-target-word" style="font-size: 2.5rem; font-weight: 900; color: var(--coral-pink); background: var(--light-blue); padding: 10px 24px; border-radius: 16px; border: 3px dashed var(--sky-blue);"></div>
+      <div class="modal-buttons" id="modal-selfcheck-btns" style="display:flex; flex-direction:column;">
+        <button class="btn btn-action" onclick="confirmSpelling(true)">🎉 I Spelled It Correctly!</button>
+        <button class="btn btn-secondary" onclick="confirmSpelling(false)">✏️ Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CONGRATULATIONS -->
+  <div class="modal-overlay" id="congrats-modal">
+    <div class="modal-card">
+      <div style="font-size: 4rem;">🌟</div>
+      <h2 class="modal-title" style="color: var(--fresh-green);">Great Job! 🎉</h2>
+      <p id="congrats-message" style="font-size: 1.2rem; font-weight: bold;">You spelled the word correctly!</p>
+      <div class="modal-buttons" style="flex-direction: column;">
+        <button class="btn btn-action" onclick="goToNextWord()">➡️ Next Word</button>
+        <button class="btn btn-primary" onclick="closeModal('congrats-modal'); navigateTo('number-screen');">🏠 Go Back Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* --- GAME DATA & TARGET WORDS --- */
+    const TARGET_WORDS = [
+      { id: 1, word: "Taiwan", type: "country" },
+      { id: 2, word: "Philippines", type: "country" },
+      { id: 3, word: "Japan", type: "country" },
+      { id: 4, word: "USA", type: "country" },
+      { id: 5, word: "UK", type: "country" },
+      { id: 6, word: "Thailand", type: "country" },
+      { id: 7, word: "Durians", type: "fruit" },
+      { id: 8, word: "Wax apples", type: "fruit" },
+      { id: 9, word: "Yuzus", type: "fruit" },
+      { id: 10, word: "Cranberries", type: "fruit" },
+      { id: 11, word: "Blackcurrants", type: "fruit" },
+      { id: 12, word: "Mangosteens", type: "fruit" },
+      // Review rounds 13-15
+      { id: 13, word: "Philippines", type: "country" },
+      { id: 14, word: "Durians", type: "fruit" },
+      { id: 15, word: "Blackcurrants", type: "fruit" }
+    ];
+
+    let currentWordIndex = 0;
+    let previousScreen = 'welcome-screen';
+
+    /* --- CANVAS & HANDWRITING STATE --- */
+    let canvas, ctx;
+    let isDrawing = false;
+    let currentTool = 'marker'; // 'marker' or 'eraser'
+    let strokes = []; // History for Undo
+    let currentStroke = [];
+
+    /* --- INITIALIZATION --- */
+    window.addEventListener('DOMContentLoaded', () => {
+      initNumberGrid();
+      initCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    });
+
+    /* --- NAVIGATION --- */
+    function navigateTo(screenId) {
+      // Audio safety: cancel active speech
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      const activeScreen = document.querySelector('.screen.active');
+      if (activeScreen) {
+        previousScreen = activeScreen.id;
+        activeScreen.classList.remove('active');
+      }
+
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      if (screenId === 'spelling-screen') {
+        resizeCanvas();
+      }
+    }
+
+    function goBackFromWordList() {
+      navigateTo(previousScreen || 'welcome-screen');
+    }
+
+    /* --- NUMBER BOARD --- */
+    function initNumberGrid() {
+      const gridContainer = document.getElementById('number-grid');
+      gridContainer.innerHTML = '';
+
+      TARGET_WORDS.forEach((item, idx) => {
+        const btn = document.createElement('button');
+        const colorClass = `box-color-${(idx % 5) + 1}`;
+        btn.className = `number-box ${colorClass}`;
+        btn.textContent = idx + 1;
+        btn.onclick = () => selectWord(idx);
+        gridContainer.appendChild(btn);
+      });
+    }
+
+    function selectWord(index) {
+      currentWordIndex = index;
+      document.getElementById('activity-title').textContent = `Word #${index + 1}`;
+      document.getElementById('word-reveal-display').textContent = '❓❓❓';
+      clearCanvas();
+      navigateTo('spelling-screen');
+      // Removed automatic audio playback call so opening a box is completely silent
+    }
+
+    /* --- AUDIO PROMPT (ENHANCED SPEECH SYNTHESIS) --- */
+    function playAudioPrompt() {
+      if (!('speechSynthesis' in window)) {
+        return;
+      }
+
+      window.speechSynthesis.cancel(); // Stop overlapping audio
+
+      const currentItem = TARGET_WORDS[currentWordIndex];
+      const textToSpeak = `Please spell the word ${currentItem.word}.`;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+      // Warm, natural, friendly teacher-like cadence at a smooth natural conversational pace
+      utterance.rate = 0.88; // Natural, unhurried, clear elementary-teacher pace (~0.88-0.90)
+      utterance.pitch = 1.0; // Warm, friendly, neutral pitch
+      utterance.lang = 'en-US';
+
+      // Advanced Natural/Conversational Voice Selection Logic
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Prioritize smooth, high-quality, natural/neural teacher-like voices
+      const naturalVoice = voices.find(v => v.lang.startsWith('en') && (
+        v.name.includes('Natural') || 
+        v.name.includes('Neural') ||
+        v.name.includes('Enhanced') || 
+        v.name.includes('Premium') ||
+        v.name.includes('Google US English') ||
+        v.name.includes('Samantha') || 
+        v.name.includes('Serena') ||
+        v.name.includes('Ava') ||
+        v.name.includes('Karen')
+      )) || voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'));
+
+      if (naturalVoice) {
+        utterance.voice = naturalVoice;
+      }
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('Speech playback prevented:', e);
+      }
+    }
+
+    // Ensure voices are loaded asynchronously on all devices (Safari, Chrome, iOS)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+    }
+
+    /* --- DIGITAL HANDWRITING BOARD (CANVAS) --- */
+    function initCanvas() {
+      const container = document.getElementById('canvas-container');
+      canvas = document.getElementById('handwriting-canvas');
+      ctx = canvas.getContext('2d');
+
+      // Pointer events for universal touch/stylus/mouse handling
+      canvas.addEventListener('pointerdown', startDrawing);
+      canvas.addEventListener('pointermove', draw);
+      canvas.addEventListener('pointerup', stopDrawing);
+      canvas.addEventListener('pointercancel', stopDrawing);
+    }
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+
+      // High DPI Scaling
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      redrawCanvas();
+    }
+
+    function drawGuideLines() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      const lineSpacing = height / 5;
+      const topY = lineSpacing * 1;
+      const midY = lineSpacing * 2;
+      const baseY = lineSpacing * 3;
+      const botY = lineSpacing * 4;
+
+      ctx.save();
+      ctx.lineWidth = 2;
+
+      // 1. Top Line (Solid Blue)
+      ctx.strokeStyle = '#64D1FF';
+      ctx.beginPath();
+      ctx.moveTo(0, topY);
+      ctx.lineTo(width, topY);
+      ctx.stroke();
+
+      // 2. Middle Line (Dashed Light Blue)
+      ctx.strokeStyle = '#A0E2FF';
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(width, midY);
+      ctx.stroke();
+
+      // 3. Baseline (Solid Pink/Red)
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#FF6B91';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, baseY);
+      ctx.lineTo(width, baseY);
+      ctx.stroke();
+
+      // 4. Bottom Line (Dashed Light Blue)
+      ctx.strokeStyle = '#A0E2FF';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, botY);
+      ctx.lineTo(width, botY);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      currentStroke = [{ x, y, tool: currentTool }];
+      
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = currentTool === 'eraser' ? 24 : 6;
+      ctx.strokeStyle = currentTool === 'eraser' ? '#FFFEFA' : '#173D79';
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      currentStroke.push({ x, y, tool: currentTool });
+
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    function stopDrawing() {
+      if (isDrawing) {
+        isDrawing = false;
+        strokes.push([...currentStroke]);
+        currentStroke = [];
+        redrawCanvas(); // Clean redraw preserving guide lines
+      }
+    }
+
+    function setTool(tool) {
+      currentTool = tool;
+      document.getElementById('tool-marker').classList.toggle('active', tool === 'marker');
+      document.getElementById('tool-eraser').classList.toggle('active', tool === 'eraser');
+    }
+
+    function undoStroke() {
+      strokes.pop();
+      redrawCanvas();
+    }
+
+    function clearCanvas() {
+      strokes = [];
+      redrawCanvas();
+    }
+
+    function redrawCanvas() {
+      const container = document.getElementById('canvas-container');
+      ctx.clearRect(0, 0, container.clientWidth, container.clientHeight);
+
+      // Redraw background guidelines
+      drawGuideLines();
+
+      // Redraw all stored strokes
+      strokes.forEach(stroke => {
+        if (stroke.length < 1) return;
+        ctx.beginPath();
+        ctx.moveTo(stroke[0].x, stroke[0].y);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = stroke[0].tool === 'eraser' ? 24 : 6;
+        ctx.strokeStyle = stroke[0].tool === 'eraser' ? '#FFFEFA' : '#173D79';
+
+        for (let i = 1; i < stroke.length; i++) {
+          ctx.lineTo(stroke[i].x, stroke[i].y);
+        }
+        ctx.stroke();
+      });
+    }
+
+    /* --- SPELLING CHECK & MODALS --- */
+    function openCheckModal() {
+      // Automatically reveal target word in top banner & modal as soon as Check My Spelling is tapped
+      const targetWord = TARGET_WORDS[currentWordIndex].word;
+      document.getElementById('word-reveal-display').textContent = targetWord;
+
+      document.getElementById('modal-instruction-text').textContent = 'Compare your writing with the word displayed at the top of your screen! Check every letter!';
+      const modalTarget = document.getElementById('modal-target-word');
+      modalTarget.textContent = targetWord;
+      modalTarget.style.display = 'block';
+
+      document.getElementById('modal-selfcheck-btns').style.display = 'flex';
+      document.getElementById('check-modal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function confirmSpelling(isCorrect) {
+      closeModal('check-modal');
+      if (isCorrect) {
+        document.getElementById('congrats-message').textContent = `You spelled ${TARGET_WORDS[currentWordIndex].word} correctly!`;
+        document.getElementById('congrats-modal').classList.add('active');
+        triggerCelebration();
+      }
+    }
+
+    function goToNextWord() {
+      closeModal('congrats-modal');
+      if (currentWordIndex < TARGET_WORDS.length - 1) {
+        selectWord(currentWordIndex + 1);
+      } else {
+        navigateTo('number-screen');
+      }
+    }
+
+    /* --- LIGHTWEIGHT BALLOONS & CONFETTI ANIMATION --- */
+    function triggerCelebration() {
+      const confettiCanvas = document.getElementById('confetti-canvas');
+      const cCtx = confettiCanvas.getContext('2d');
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#64D1FF', '#FFCA4D', '#FF6B91', '#3BBD91', '#A777F5', '#FF8843'];
+
+      // 1. Confetti Burst Particles (falling down)
+      for (let i = 0; i < 70; i++) {
+        particles.push({
+          type: 'confetti',
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.8) * 14,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.25,
+          alpha: 1
+        });
+      }
+
+      // 2. Floating Balloons (rising up)
+      for (let i = 0; i < 15; i++) {
+        particles.push({
+          type: 'balloon',
+          x: Math.random() * window.innerWidth,
+          y: window.innerHeight + Math.random() * 200,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: -(Math.random() * 3 + 2.5),
+          radius: Math.random() * 12 + 18,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1
+        });
+      }
+
+      let animationFrame;
+      function render() {
+        cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        let activeParticles = 0;
+
+        particles.forEach(p => {
+          if (p.type === 'confetti') {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.alpha -= 0.012;
+
+            if (p.alpha > 0) {
+              activeParticles++;
+              cCtx.globalAlpha = p.alpha;
+              cCtx.fillStyle = p.color;
+              cCtx.fillRect(p.x, p.y, p.size, p.size);
+            }
+          } else if (p.type === 'balloon') {
+            p.x += Math.sin(p.y * 0.02) * 0.8 + p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.003;
+
+            if (p.y + p.radius > 0 && p.alpha > 0) {
+              activeParticles++;
+              cCtx.globalAlpha = Math.max(0, p.alpha);
+              
+              // Draw Balloon Body
+              cCtx.fillStyle = p.color;
+              cCtx.beginPath();
+              cCtx.ellipse(p.x, p.y, p.radius, p.radius * 1.25, 0, 0, Math.PI * 2);
+              cCtx.fill();
+
+              // Draw Balloon Tie
+              cCtx.beginPath();
+              cCtx.moveTo(p.x - 3, p.y + p.radius * 1.25);
+              cCtx.lineTo(p.x + 3, p.y + p.radius * 1.25);
+              cCtx.lineTo(p.x, p.y + p.radius * 1.25 + 4);
+              cCtx.fill();
+
+              // Draw String
+              cCtx.strokeStyle = 'rgba(100, 100, 100, 0.4)';
+              cCtx.lineWidth = 1.5;
+              cCtx.beginPath();
+              cCtx.moveTo(p.x, p.y + p.radius * 1.25 + 4);
+              cCtx.lineTo(p.x + Math.sin(p.y * 0.05) * 5, p.y + p.radius * 1.25 + 25);
+              cCtx.stroke();
+            }
+          }
+        });
+
+        if (activeParticles > 0) {
+          animationFrame = requestAnimationFrame(render);
+        } else {
+          cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          cancelAnimationFrame(animationFrame);
+        }
+      }
+      render();
+    }
+  </script>
+</body>
+</html>
